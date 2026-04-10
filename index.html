@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistencia 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f6fb;
+    --panel: #ffffff;
+    --panel-soft: #f8fbff;
+    --line: #d9e3f0;
+    --line-strong: #bfd0e4;
+    --text: #17324d;
+    --muted: #66819c;
+    --primary: #1d4ed8;
+    --primary-soft: #e8f0ff;
+    --accent: #dc2626;
+    --success: #0f766e;
+    --warning: #b45309;
+    --info: #2563eb;
+    --danger: #b91c1c;
+    --shadow: 0 14px 30px rgba(15, 23, 42, .08);
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; font-family: 'Inter', sans-serif; color: var(--text); background: linear-gradient(180deg, #eef4fb 0%, #f7f9fc 100%); }
+  .app { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
+  .sidebar { background: linear-gradient(180deg, #143b74 0%, #0f2b52 100%); color: #fff; padding: 22px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+  .brand { padding: 8px 10px 18px; border-bottom: 1px solid rgba(255,255,255,.12); }
+  .brand h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.03em; }
+  .brand p { margin: 6px 0 0; color: rgba(255,255,255,.72); font-size: 13px; }
+  .search { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 10px 12px; color: #fff; outline: none; width: 100%; }
+  .search::placeholder { color: rgba(255,255,255,.62); }
+  .courses { overflow: auto; padding-right: 4px; }
+  .grade-title { margin: 16px 8px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: rgba(255,255,255,.58); }
+  .course-btn { width: 100%; border: none; background: transparent; color: rgba(255,255,255,.86); padding: 11px 12px; border-radius: 12px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: .18s ease; }
+  .course-btn:hover { background: rgba(255,255,255,.08); }
+  .course-btn.active { background: #fff; color: #0f2b52; font-weight: 700; }
+  .course-count { font-size: 12px; padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,.12); }
+  .course-btn.active .course-count { background: #dbeafe; color: #1d4ed8; }
+
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar { padding: 18px 22px 14px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.78); backdrop-filter: blur(10px); }
+  .topbar-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+  .title-wrap h2 { margin: 0; font-size: 24px; letter-spacing: -.04em; }
+  .title-wrap p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { appearance: none; border: 1px solid var(--line-strong); background: #fff; color: var(--text); border-radius: 12px; padding: 10px 14px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 0 rgba(15,23,42,.02); }
+  .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn.soft { background: var(--panel-soft); }
+  .tabs { padding: 14px 22px 0; display: flex; gap: 10px; flex-wrap: wrap; }
+  .tab { border: 1px solid var(--line-strong); background: #fff; color: var(--muted); padding: 8px 14px; border-radius: 999px; font-weight: 600; cursor: pointer; }
+  .tab.active { background: var(--primary-soft); color: var(--primary); border-color: #c9d9ff; }
+
+  .content { padding: 18px 22px 22px; overflow: auto; min-width: 0; }
+  .sheet-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; min-width: 0; }
+  .sheet-head { display: flex; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, #fff 0%, #f8fbff 100%); }
+  .sheet-head strong { display: block; font-size: 15px; }
+  .sheet-head span { font-size: 12px; color: var(--muted); }
+  .table-zone { overflow: auto; max-height: calc(100vh - 240px); }
+  table { border-collapse: separate; border-spacing: 0; min-width: 1120px; width: max-content; }
+  thead th { position: sticky; top: 0; z-index: 4; background: #edf4ff; color: #24405d; border-bottom: 1px solid var(--line-strong); }
+  th, td { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 0; }
+  th.month-cell { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 12px 6px; background: #dce9ff; color: #1e3a8a; }
+  th.date-cell { min-width: 146px; }
+  .date-box { display: grid; grid-template-columns: 1fr; gap: 4px; padding: 10px 8px 8px; }
+  .date-top { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
+  .date-num { font-size: 18px; font-weight: 700; color: #17324d; }
+  .date-day { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+  .subheads { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .subheads span { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: rgba(255,255,255,.7); border: 1px solid #d9e3f0; border-radius: 8px; padding: 4px 6px; }
+
+  .sticky-col, .sticky-col-2 { position: sticky; left: 0; z-index: 5; background: #fff; }
+  .sticky-col-2 { left: 62px; z-index: 5; }
+  thead .sticky-col, thead .sticky-col-2 { z-index: 6; background: #edf4ff; }
+  .num-col { width: 62px; min-width: 62px; text-align: center; font-weight: 700; color: var(--muted); }
+  .name-col { width: 320px; min-width: 320px; padding: 0 14px; font-weight: 600; }
+  tbody tr:hover td { background: #fafcff; }
+  tbody tr:hover .sticky-col, tbody tr:hover .sticky-col-2 { background: #fafcff; }
+  .student-name { display: flex; flex-direction: column; gap: 3px; padding: 11px 0; }
+  .student-name small { color: var(--muted); font-weight: 500; }
+  .cell-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px; min-width: 146px; }
+  select { width: 100%; border: 1px solid #d4dfed; background: #fff; border-radius: 10px; padding: 8px 9px; font: inherit; font-size: 12px; color: var(--text); outline: none; }
+  select:focus { border-color: #8ab4ff; box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+  select.att-asiste { background: #ecfdf5; border-color: #b7ebd1; color: var(--success); font-weight: 700; }
+  select.att-no-asiste { background: #fef2f2; border-color: #fecaca; color: var(--danger); font-weight: 700; }
+  select.att-tarde { background: #fff7ed; border-color: #fed7aa; color: var(--warning); font-weight: 700; }
+  select.att-excusa { background: #eff6ff; border-color: #bfdbfe; color: var(--info); font-weight: 700; }
+  select.uni-bad { background: #fff1f2; border-color: #fecdd3; color: #be123c; font-weight: 700; }
+  select.uni-permiso { background: #eff6ff; border-color: #bfdbfe; color: var(--info); font-weight: 700; }
+
+  .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
+  .empty strong { display: block; font-size: 18px; color: var(--text); margin-bottom: 8px; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.5); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+  .modal-overlay.open { display: flex; }
+  .modal { width: min(480px, 100%); background: #fff; border-radius: 22px; box-shadow: 0 24px 60px rgba(15,23,42,.22); padding: 24px; }
+  .modal h3 { margin: 0 0 6px; font-size: 22px; }
+  .modal p { margin: 0 0 16px; color: var(--muted); }
+  .modal input { width: 100%; border: 1px solid var(--line-strong); border-radius: 14px; padding: 14px; font: inherit; outline: none; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+  @media (max-width: 980px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .content { padding: 12px; }
+    .tabs { padding: 12px 12px 0; }
+    .topbar { padding: 14px 12px 10px; }
+    .table-zone { max-height: calc(100vh - 210px); }
+    .name-col { width: 240px; min-width: 240px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>Asistencia 2026</h1>
+      <p>Control por curso, por mes y por día. Diseño limpio y profesional.</p>
+    </div>
+    <input class="search" id="courseSearch" type="text" placeholder="Buscar curso...">
+    <div class="courses" id="coursesList"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-row">
+        <div class="title-wrap">
+          <h2 id="courseHeader">Selecciona un curso</h2>
+          <p id="courseMeta">La carga inicia en abril de 2026 y solo muestra días hábiles de Colombia.</p>
+        </div>
+        <div class="actions" id="topbarActions" style="display:none;">
+          <button class="btn soft" onclick="exportCSV()">Exportar CSV</button>
+          <button class="btn" onclick="openModal()">Agregar estudiante</button>
+          <button class="btn primary" onclick="addMonth()">Agregar mes</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs" id="monthTabs"></div>
+
+    <div class="content" id="mainContent">
+      <div class="sheet-wrap">
+        <div class="empty">
+          <strong>Ningún curso seleccionado</strong>
+          Elige un curso en el panel izquierdo para empezar a registrar la asistencia y el uniforme.
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>Agregar estudiante</h3>
+    <p>Escribe el nombre completo. Se ordenará alfabéticamente dentro del curso activo.</p>
+    <input id="newStudentName" type="text" placeholder="Ejemplo: GARCIA LOPEZ MARIA JOSE" onkeydown="if(event.key==='Enter') confirmAdd()">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="confirmAdd()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STUDENTS = {"301":[{"num":1,"name":"ALBARRACÍN URREGO ISABELLA"},{"num":2,"name":"BERNAL FRANCISCO KANTELL NOELIA"},{"num":3,"name":"CASTRO RINCON MATIAS GABRIEL"},{"num":4,"name":"CRUZ GALINDO AARON SANTIAGO"},{"num":5,"name":"CUARTAS TRIANA JUAN SEBASTIAN"},{"num":6,"name":"GUERRERO JEAN CARLOS"},{"num":7,"name":"HERNANDEZ HURTADO ISABELLA"},{"num":8,"name":"LOPEZ POLANIA SALOME"},{"num":9,"name":"LOZANO GUEVARA DYLAN FERNANDO"},{"num":10,"name":"MADRID CONTRERAS ANJHEL DAVID"},{"num":11,"name":"MARTINEZ GUZMAN DAVID SANTIAGO"},{"num":12,"name":"MATAMOROS QUIÑONEZ JOSEPH MATIAS"},{"num":13,"name":"MENDOZA MOLINA ANABELLA ESTEFANIA"},{"num":14,"name":"MONROY VELANDIA MARIA LUCIA"},{"num":15,"name":"NADAL RÍOS FABIO MATHIAS"},{"num":16,"name":"ORTIZ CIPAGAUTA JERONIMO ALEJANDRO"},{"num":17,"name":"PAEZ MELO MIA CAROLAIN"},{"num":18,"name":"PARRA LEDEZMA CARLOS MATIAZ"},{"num":19,"name":"PEREZ GARCIA JOEL SEBASTIAN"},{"num":20,"name":"RODRIGUEZ LEON ALONDRA NATALIA"},{"num":21,"name":"RODRIGUEZ MARTINEZ LUCIANO JOSE"},{"num":22,"name":"RUBIO ACEVEDO MATÍAS"},{"num":23,"name":"SILVA PARRA ANGELA"},{"num":24,"name":"TAPIAS ARBOLEDA IVANNA LUCIA"},{"num":25,"name":"TIMAURE MELENDEZ AVRIL ALEXANDRA DEL CARMEN"}],"302":[{"num":1,"name":"ACOSTA DIAZ SALOME"},{"num":2,"name":"AMEZQUITA BELTRAN ARIADNA"},{"num":3,"name":"BARRETO HERNÁNDEZ ISABELLA"},{"num":4,"name":"BRICEÑO SILVA SARAY JASNEYH"},{"num":5,"name":"CARDONA CASTEBLANCO SALOME"},{"num":6,"name":"CORREDOR SERRANO SCARLETT DAMARA"},{"num":7,"name":"DUQUE HERNANDEZ SARA VALENTINA"},{"num":8,"name":"FERNANDEZ BUENDIA BELEN DE LOS ANGELES"},{"num":9,"name":"FRANCO GARZÓN SARA EILIN"},{"num":10,"name":"GARCÍA TIQUE SARA VALENTINA"},{"num":11,"name":"GUERRERO MAYORGA LUCIANA"},{"num":12,"name":"GÓMEZ ROCHA THIAGO MATHIAS"},{"num":13,"name":"HERNÁNDEZ RAMIREZ SAMUEL FELIPE"},{"num":14,"name":"HIDALGO AMAYA MATHIAS"},{"num":15,"name":"LÓPEZ GOZÁLEZ ERICK ESTEBAN"},{"num":16,"name":"MEZA SIMANCA TIAGO JAIR"},{"num":17,"name":"MIRANDA MEJIA ANDREA VALENTINA"},{"num":18,"name":"MONTAÑEZ VARGAS ALEXIS DAMIAN"},{"num":19,"name":"ORTEGON AGUIRRE MATHIAS"},{"num":20,"name":"ORTEGON AGUIRRE THIAGO"},{"num":21,"name":"PEDRAZA PALOMA LUCIANA"},{"num":22,"name":"PEREZ HOYOS LUCIANA"},{"num":23,"name":"RAMOS GONZALEZ BRAYAN ALEJANDRO"},{"num":24,"name":"RINCON CUY MATHIAS FELIPE"},{"num":25,"name":"RODRIGUEZ GUERRERO SAMUEL LEONARDO"},{"num":26,"name":"SARMIIENT ACOSTA ILIANA"},{"num":27,"name":"VARGAS ARDILA SALOME"},{"num":28,"name":"ZIPASUCA OCHOA MATIAS"}],"401":[{"num":1,"name":"ARIAS CASTRILLON SHAROL MISHELL"},{"num":2,"name":"BELLO OCAMPO DAVVID ALEJANDRO"},{"num":3,"name":"BOJACA DIAZ ALISSON DANIELA"},{"num":4,"name":"BOLAÑOS CIFUENTES ANDRES KALEB"},{"num":5,"name":"CARDENAS BENITEZ SAMANTHA"},{"num":6,"name":"CASTRO CARRION LAURA DANIELA"},{"num":7,"name":"CORDOBA CUELLAR EMANUEL"},{"num":8,"name":"DE LEON SOTO CAMILO ANDRES"},{"num":9,"name":"DIAZ BARRERO NICOLAS MATHIAS"},{"num":10,"name":"DUARTE SALINAS VALERYD NOHEMY"},{"num":11,"name":"FORERO HUERTAS MARIANA"},{"num":12,"name":"GOMEZ PADILLA ALAN DAVID"},{"num":13,"name":"GUERRERO MARTINEZ MILAGRO DEL CARMEN"},{"num":14,"name":"GUEVARA RICO ANGEL GABRIEL"},{"num":15,"name":"GUZMAN BARRETO NICOLE MARIANA"},{"num":16,"name":"LERDESMA RODRIGUEZ DANNA ISABELLA"},{"num":17,"name":"LOPEZ BALLERN DANA SALOME"},{"num":18,"name":"MARIN MENZA YEILEN XIMENA"},{"num":19,"name":"MERIDA HERNANDEZ XIMENA ELIZABETH"},{"num":20,"name":"MONTES MARTINEZ MATIAS SEBASTIAN"},{"num":21,"name":"MORALES MORA LUISA MARIA"},{"num":22,"name":"NAVARRO RAMIREZ MATIAS"},{"num":23,"name":"ORJUELA ANDRADE RAFAEL MATIAS"},{"num":24,"name":"PACHECO CUCAITA JUAN DAVID"},{"num":25,"name":"PIZARRO YEPES JERONIMO"},{"num":26,"name":"ROJAS MENDEZ VALERIE CAMILA"},{"num":27,"name":"RUIZ RESTREPO SAMUEL"},{"num":28,"name":"TORRES VILLABON OSCAR FELIPE"},{"num":29,"name":"VALECILLOS MARTINEZ CARLOS DORIAN"},{"num":30,"name":"VALLEJO MELO JUANA GABRIELA"},{"num":31,"name":"VARGAS BERNAL VALERYD NOHEMY"}],"402":[{"num":1,"name":"BAHAMON DANNY ALEJANDRO"},{"num":2,"name":"BELTRAN PRIETO MARIANA ISABELLA"},{"num":3,"name":"BERRIO MEZA EMILY GABRIELA"},{"num":4,"name":"BONILLA GALINDO MARIA ISABELLA"},{"num":5,"name":"BORJA PACHECO ANDERSON PAUL"},{"num":6,"name":"CALCETA CALCETA BRITNEY SOFIA"},{"num":7,"name":"CAMACHO AREVALO AVRIL VALERIA"},{"num":8,"name":"CAMACHO AREVALO CHRISTOPHER JEHIEL"},{"num":9,"name":"CASTAÑEDA HERNANDEZ MIGUEL LEONARDO"},{"num":10,"name":"CASTRO SALCEDO KHALID SAMUEL"},{"num":11,"name":"CHAVES PAEZ JUAN ESTEBAN"},{"num":12,"name":"CONTRERAS LEON ELIANA VALENTINA"},{"num":13,"name":"CUESTAS MORALES GABRIELA SHARYTH"},{"num":14,"name":"DE HOYOS FERNANDEZ ARIANNA"},{"num":15,"name":"DIAZ HERNANDEZ LUIS ANGEL"},{"num":16,"name":"FAJARDO RODRIGUEZ LUIS HUMBERTO"},{"num":17,"name":"FONSECA ESPAÑOL SARAY NICHOLLE"},{"num":18,"name":"FONSECA QUINTERO DYLAN ANDRES"},{"num":19,"name":"GERENA GUZMAN TIFFANY CHARLOTTE"},{"num":20,"name":"GOMEZ PINTO DANIA SAMARA"},{"num":21,"name":"GONZALEZ SANCHEZ DANNA VALERIA"},{"num":22,"name":"GUERRERO MAYORGA DANIELA SOFIA"},{"num":23,"name":"LARGO ZAPATA JUANA VALENTINA"},{"num":24,"name":"MACIAS QUINTERO DYLAN ANDRES"},{"num":25,"name":"MORALES MARTINEZ ANDRES JERONIMO"},{"num":26,"name":"MORFIL ROMERO NEIBIS ESTHER"},{"num":27,"name":"OCAMPO AGUDELO SOFIA"},{"num":28,"name":"PARRA CUY AYELEN CAMILA"},{"num":29,"name":"PARRA LEAL JOSE GREGORIO"},{"num":30,"name":"PEREZ DIAZ CRISTIAN DANIEL"},{"num":31,"name":"PINZON LANCHEROS BELKIN SALOME"},{"num":32,"name":"RODRIGUEZ GUEVARA JHONATAN STIVEN"},{"num":33,"name":"RUIZ FLOREZ DANIEL SANTIAGO"},{"num":34,"name":"VALENZUELA GUILLEN EVANGELIN JULIETH"}],"501":[{"num":1,"name":"ALVAREZ SARABIA NICOLAS"},{"num":2,"name":"AREVALO MURCIA SARA LUCIA"},{"num":3,"name":"BENCOMO MIJARES CAMILA SARAHI"},{"num":4,"name":"BOLIVAR PRADA LEIMAR VALENTINA"},{"num":5,"name":"CARDONA DUARTE JULIANA MARGARITA"},{"num":6,"name":"COLMENARES ROMERO ANGELA MARÍA"},{"num":7,"name":"CORTÉS CAMPUSANO DANY XAVIER"},{"num":8,"name":"ESCOBAR LÓPEZ ALAN DAMIAN"},{"num":9,"name":"FONSECA CAÑON JEIDI MARIANA"},{"num":10,"name":"GARCÍA QUINTERO SEBASTIAN"},{"num":11,"name":"GONZÁLEZ TORRES VALERY SAMANTHA"},{"num":12,"name":"GUTIERREZ PARRA DERECK SANTIAGO"},{"num":13,"name":"JÍMENEZ MARÍA VICTORIA"},{"num":14,"name":"JÍMENEZ SANABRIA JOHAN SEBASTIAN"},{"num":15,"name":"LEMUS MACHADO STEILER"},{"num":16,"name":"LÓPEZ PINZÓN MATYLDA"},{"num":17,"name":"MEDINA BLANCO ALVARO ELIAS"},{"num":18,"name":"MIRALBA MUÑOZ FABIAN JOSÉ"},{"num":19,"name":"MORA SALAZAR OSCAR ANDRES"},{"num":20,"name":"MÉNDEZ LEÓN DAVID SANTIAGO"},{"num":21,"name":"OLIVERA ZAMBRANO LUIS JOSÉ"},{"num":22,"name":"ORTEGA MARTÍNEZ ANA SOFIA"},{"num":23,"name":"PÉREZ MUNELO ESTEBAN NORBERTO"},{"num":24,"name":"QUIÑONES VALVERDE DYLAN ANDRÉS"},{"num":25,"name":"RAMÍREZ BETANCOURT MARÍA JOSÉ"},{"num":26,"name":"RAMÍREZ ROA JUAN PABLO"},{"num":27,"name":"RODRÍGUEZ GONZALEZ THIAGO"},{"num":28,"name":"ROJAS ROJAS DANNA SOFIA"},{"num":29,"name":"RUÍZ RESTREPO JUAN JOSÉ"},{"num":30,"name":"SABOGAL ROMERO EMILY SOFIA"},{"num":31,"name":"VALENCIA PELAEZ PAULA SOPHIA"}],"502":[{"num":1,"name":"ACOSTA MORANTE LUIS MARIO"},{"num":2,"name":"AGUDELO RODRIGUEZ EIMY JULIANA"},{"num":3,"name":"AGUIRRE VANEGAS DANNA SOFIA"},{"num":4,"name":"APONTE BARRETO SAMANTHA VALERIA"},{"num":5,"name":"BECERRA GAMEZ TANYA ISABELLA"},{"num":6,"name":"BEJARANO MONTAÑEZ JUAN MATIAS"},{"num":7,"name":"BENAVIDES LESMES JOHAN SANTIAGO"},{"num":8,"name":"BLANDON GONZALEZ BEKAN ALEXANDER"},{"num":9,"name":"CAMARGO SUAREZ VALERY SOFIA"},{"num":10,"name":"CASALLAS SUAREZ LAURA STTEFANY"},{"num":11,"name":"CASTILLO MAYORA SAMUEL JOSUA"},{"num":12,"name":"GARNICA PELAEZ SAMUEL MAURICIO"},{"num":13,"name":"GUERRERO MENA ELYANA ANDREA"},{"num":14,"name":"GUTIERREZ MONTENEGRO YOHILETH MICHELL"},{"num":15,"name":"GUZMAN DEANGEL DYLAN"},{"num":16,"name":"LOPEZ ATAHUALPA SAMUEL DAVID"},{"num":17,"name":"LUNA BARRETO ABBY GABRIELA"},{"num":18,"name":"MARTINEZ GARCIA EMMANUEL"},{"num":19,"name":"MONTES MORENO ANGEL GABRIEL"},{"num":20,"name":"MORALES CASTRO DANNA NIKOL"},{"num":21,"name":"MORENO REYES YEISON DUVAN"},{"num":22,"name":"MOTIVAR LUCAS KEVIN"},{"num":23,"name":"ORTIZ CIPAGAUTA MARTIN MATIAS"},{"num":24,"name":"PARRA MEJIA DIEGO ALEJANDRO"},{"num":25,"name":"PIMIENTO PRIETO SEBASTIAN"},{"num":26,"name":"RAMIREZ OCHOA TOMAS ASDRUBAL"},{"num":27,"name":"ROA GOMEZ VALERY STEPHANIA"},{"num":28,"name":"RODRIGUEZ GUEVARA JOSE MANUEL"},{"num":29,"name":"SANTAMARIA GONZALEZ EVELYN"},{"num":30,"name":"TORRES GARZON DAMIAN ALEXANDER"},{"num":31,"name":"TRIANA AVILA DANNA SOPHIA"}],"503":[{"num":1,"name":"ACOSTA DIAZ ASHLEY LUCIANA"},{"num":2,"name":"AMBUILA SUAREZ JUAN ANDRES"},{"num":3,"name":"ANGULO CONTRERAS ANGEL MATIAS"},{"num":4,"name":"ARENAS ESCOBAR NATHAN AARON"},{"num":5,"name":"AREVALO MURCIA CRISTIAN RONALDO"},{"num":6,"name":"ARIAS CASTRILLON JESUS SHTEVEN"},{"num":7,"name":"CALCETA CALCETA THIAGO"},{"num":8,"name":"CANDELAZO TORRES NICOL SOFIA"},{"num":9,"name":"CASTIBLANCO DIAZ SAMUEL ALEJANDRO"},{"num":10,"name":"ELEJALDE DIAZ MARIA CAMILA"},{"num":11,"name":"ESCOBAR GAVIRIA ANGEL DAVID"},{"num":12,"name":"HERRERA SICARD VALERY NICOLK"},{"num":13,"name":"HERRIERA ALABDUM ELIAS ALEJANDRO"},{"num":14,"name":"LOZADA OSORIO JUAN PABLO"},{"num":15,"name":"MADERO MARTINEZ GENISIS CHARLOT"},{"num":16,"name":"MEJIA MIRANDA MARIA ELY"},{"num":17,"name":"MENDOZA ARGEL JUAN DAVID"},{"num":18,"name":"MORENO PULIDO ISABELLA"},{"num":19,"name":"MUÑOZ MONTES XIMENA"},{"num":20,"name":"OVIEDO SINGER ALESSANDRO SEBASTIAN"},{"num":21,"name":"PEÑA HERNANDEZ HEISSEN HAWUARE"},{"num":22,"name":"PEÑA LOPEZ SARA SOFIA"},{"num":23,"name":"QUINTERO JIMENEZ ARMANDO JOSE"},{"num":24,"name":"RAMIREZ OCHOA JUAN SEBASTIAN"},{"num":25,"name":"RAMOS MEDINA SAMANTHA"},{"num":26,"name":"REINA HURTADO ANDERSON SAMUEL"},{"num":27,"name":"ROMERO MORALES JOSE DAVID"},{"num":28,"name":"SALGUERO CHICA SANTIAGO ANDRES"},{"num":29,"name":"SANCHEZ CURREA SARA VALENTINA"}],"601":[{"num":1,"name":"ACEVEDO CHIQUIZA JUAN CAMILO"},{"num":2,"name":"ACEVEDO CHIQUIZA LAURA SOFIA"},{"num":3,"name":"ARANGO GONZALEZ ASHLEY SHARAY"},{"num":4,"name":"ARROYO CONTRERAS ANDRES JOSUE"},{"num":5,"name":"BARRIOS BELTRAN HELEM DAHIARA"},{"num":6,"name":"BAUTISTA BAYONA NOVAK ESTIVEN"},{"num":7,"name":"BELTRAN VILLALBA EMMANUEL"},{"num":8,"name":"BURGOS PARRA JOSELYN VALERIA"},{"num":9,"name":"CABEZAS MARTINEZ SEBASTIAN MAURICIO"},{"num":10,"name":"COMBITA RODRIGUEZ ISA GABRIELA"},{"num":11,"name":"CONTRERAS CARDONA VICTORIA"},{"num":12,"name":"ESCOBAR RANGEL MATHIAS ALEJANDRO"},{"num":13,"name":"FIESCO FAJARDO ASLAN DAVID"},{"num":14,"name":"FIGUEROA CAMPO MARIANA"},{"num":15,"name":"GARCIA ORTIZ AARON MARTIN"},{"num":16,"name":"GARZON TORRES MARTIN"},{"num":17,"name":"GIRALDO PARRA SARA CAMILA"},{"num":18,"name":"GOMEZ PINTO DAVID JOSUE"},{"num":19,"name":"GOMEZ SALCEDO JUAN MARTIN"},{"num":20,"name":"GONZALEZ RUDA ANGELL ZHARICK"},{"num":21,"name":"HUESA AVILA STEPHANIE LUCIANA"},{"num":22,"name":"JIMENEZ DUEÑAS EFREN DAVID"},{"num":23,"name":"JUNCA MURCIA DANNA SOFIA"},{"num":24,"name":"LUCUMI BONILLA DILAN ALEJANDRO"},{"num":25,"name":"MEDINA MORENO ESTEBAN"},{"num":26,"name":"MONSALVE GERENA JUAN ERNESTO"},{"num":27,"name":"MORENO GALVIS MARLON ESTEBAN"},{"num":28,"name":"NARANJO FERNANDEZ NICOLAS"},{"num":29,"name":"NAVARRO RAMIREZ DUSLEY VANESSA"},{"num":30,"name":"PRADA PINILLA NELSON ALEJANDRO"},{"num":31,"name":"PÉREZ HERNÁNDEZ JACOB"},{"num":32,"name":"QUIROGA ROJAS JUAN PABLO"},{"num":33,"name":"RIVERO MARTINEZ GEILIN SELENA"},{"num":34,"name":"ROMERO ORTIZ SARA SOFIA"},{"num":35,"name":"RUEDA DONADO SEBASTIAN GAEL"},{"num":36,"name":"SANABRIA BERNAL KAREN YURLEY"},{"num":37,"name":"SANCHEZ MORENO YILMAR FELIPE"},{"num":38,"name":"TORRES VILLANUEVA SARA SOFIA"}],"602":[{"num":1,"name":"AGUIRRE JUAN SEBASTIAN"},{"num":2,"name":"CABALLERO DURAN JHOAN SEBASTIAN"},{"num":3,"name":"CAIVED SANTIAGO ALEXANDER"},{"num":4,"name":"CASTRO LADINO LINA FERNANDA"},{"num":5,"name":"CORDERO LOPEZ MELANY DAYANA"},{"num":6,"name":"FLORIAN RINCON SAMUEL MATIAS"},{"num":7,"name":"GALVAN PEREZ DAFNE VALENTINA"},{"num":8,"name":"GARCIA PEÑA SARA VALERIA"},{"num":9,"name":"GARZON NICOLAS CAMILO"},{"num":10,"name":"GELPUD DELGADO MIGUEL ANGEL"},{"num":11,"name":"HERNANDEZ RAMOS LAUREN SOFIA"},{"num":12,"name":"HERRERA CORTES MIGUEL ANGEL"},{"num":13,"name":"LOPEZ PINZON JUAN SEBASTIAN"},{"num":14,"name":"LOPEZ VEGA ALISSON KARIME"},{"num":15,"name":"LOZANO TIQUE SAMUEL DAVID"},{"num":16,"name":"MENZA CALDERON SARA VALENTINA"},{"num":17,"name":"MONROY ROBLES MARIA FERNANDA"},{"num":18,"name":"MONROY VELANDIA GABRIEL FELIPE"},{"num":19,"name":"MONTAÑEZ ROJAS NICOLLE DAIANA"},{"num":20,"name":"MONTES MARTINEZ DIEGO ALEJANDRO"},{"num":21,"name":"MORA MAYORQUIN LUCIANA"},{"num":22,"name":"MORFIL ROMERO NEILYS SOFIA"},{"num":23,"name":"MOYA MIRANDA SAMUEL"},{"num":24,"name":"MUNEVAR RAMIREZ MARIA FERNANDA"},{"num":25,"name":"MUÑOZ DIAZ MELANY CRISTAL"},{"num":26,"name":"NIETO CARO MATIAS"},{"num":27,"name":"OJEDA RODRIGUEZ DYLAN JAVIER"},{"num":28,"name":"OLAYA PEREZ DILAN SAMUEL"},{"num":29,"name":"ORTIZ TIQUE JUAN SEBASTIAN"},{"num":30,"name":"PINILLA ALZATE ANGEL SANTIAGO"},{"num":31,"name":"RIVERA ORJUELA MARIANA"},{"num":32,"name":"RIVEROS GUARNIZO LAURA MARIA"},{"num":33,"name":"RODRIGUEZ RAMIREZ MARIA ALEJANDRA"},{"num":34,"name":"RODRIGUEZ SAMBONI NICOL SARAY"},{"num":35,"name":"ROMERO MORALES ANA LUCIA"},{"num":36,"name":"SANCHEZ LAGOS SARA NICOLL"},{"num":37,"name":"TEHERAN DANNY ARIADNA"},{"num":38,"name":"URBANEJA OCANDO ALANNYS MARIE"},{"num":39,"name":"VELANDIA MUÑOZ JUAN PABLO"}],"603":[{"num":1,"name":"BAUTISTA PORRAS MARIA FERNANDA"},{"num":2,"name":"BENITEZ ROZO JACOBO"},{"num":3,"name":"BONILLA GALINDO DILAN SANTIAGO"},{"num":4,"name":"BRAVO CESPEDES SALOME"},{"num":5,"name":"CARDENAS PEREZ JUAN ESTEBAN"},{"num":6,"name":"CARVAJAL CORREDOR JULIAN ANDRES"},{"num":7,"name":"CORBA PULIDO ANDRES FELIPE"},{"num":8,"name":"CORTES MARQUEZ SISSY JOHANIS"},{"num":9,"name":"FONSECA CAÑON JADER ESTEBAN"},{"num":10,"name":"GALICIA FALCO FIORELLA"},{"num":11,"name":"GARAY VILLALBA SEBASTIAN"},{"num":12,"name":"GARCIA PEREZ DILIANA TERESA"},{"num":13,"name":"GARZON OSPINA IKER SANTIAGO"},{"num":14,"name":"GONZALEZ OROBIO LUCIANA"},{"num":15,"name":"LOPEZ RAMIREZ JUAN SANTIAGO"},{"num":16,"name":"MORENO CARDENAS SANTIAGO"},{"num":17,"name":"MORENO RODRIGUEZ MATTHIAS GABRIEL"},{"num":18,"name":"OJEDA RODRIGUEZ HANNA MICHELL"},{"num":19,"name":"ONBANDO CANTILLO LAURA ISABELLA"},{"num":20,"name":"PACHECO CUCAITA JULIANA"},{"num":21,"name":"PALENCIA CORDERO FRANNY DEL VALLE"},{"num":22,"name":"QUINTERO CAJAMARCA STEFANY"},{"num":23,"name":"QUITIAN FAJARDO SERGIO DUVAN"},{"num":24,"name":"RAMIREZ MANRIQUE JUAN JOSE"},{"num":25,"name":"RAMOS AGUILERA JORGE IVAN"},{"num":26,"name":"REINA HURTADO NICOLE JULIANA"},{"num":27,"name":"RINCON CARDOZO LIHA"},{"num":28,"name":"ROJAS ORTIZ SARAH MICHELLE"},{"num":29,"name":"RUIZ FORERO ISABELLA"},{"num":30,"name":"SANCHEZ FIGUEREDO DANNA SOFIA"},{"num":31,"name":"SANTANA VALENCIA MARIANA"},{"num":32,"name":"SORACA PEREZ JESUS DAVID"},{"num":33,"name":"SORACA PEREZ KENNER DANIEL"},{"num":34,"name":"TORRES ARISTIZABAL JUAN ESTEBAN"},{"num":35,"name":"TORRES PEREZ MICHELL LUCIA"},{"num":36,"name":"URANGO HERNANDEZ MELISSA"},{"num":37,"name":"VARGAS CONTRERAS ADELIN SAMARA"},{"num":38,"name":"VEGA ROMERO MIGUEL ANGEL"},{"num":39,"name":"YULE BELLO MILE SOFIA"}],"701":[{"num":1,"name":"ALIPIO GUTIERREZ SARA"},{"num":2,"name":"APONTE BARRETO ANDRES DAVID"},{"num":3,"name":"AVILA ALVAREZ YESLEY MARIANA"},{"num":4,"name":"BAHAMON CALDERON LINDA ISABELLA"},{"num":5,"name":"BENAVIDEZ SANCHEZ FERNEY DAVID"},{"num":6,"name":"CAMACHO ACEVEDO CRISTIAN JULIAN"},{"num":7,"name":"CARDENAS PUENTES DAVID ANYELO"},{"num":8,"name":"CELY CEPEDA ANA CAROLINA"},{"num":9,"name":"DIAZ CUBILLOS JERONIMO"},{"num":10,"name":"GARCIA GARCIA ANTONELLA"},{"num":11,"name":"GARCIA HERNANDEZ MARLON"},{"num":12,"name":"GARCIA QUINTERO MILAN"},{"num":13,"name":"GAÑAN FONSECA NICOL VANESSA"},{"num":14,"name":"GONZALEZ VILLAREAL ISABELLA MIA"},{"num":15,"name":"GRAJALES FONSECA JHON ANDERSON"},{"num":16,"name":"HERNANDEZ ALVAREZ WILLIAM DAVID"},{"num":17,"name":"LUCUMI BONILLA CAROL ISABELLA"},{"num":18,"name":"MACIAS QUINTERO SAMUEL DAVID"},{"num":19,"name":"MENDIETA MEJIA JUAN ANGEL"},{"num":20,"name":"MORALES HURTADO MARIANA"},{"num":21,"name":"MUELAS ROSERO LINA MARCELA"},{"num":22,"name":"NEIRA MARTINEZ SERGIO ALEJANDRO"},{"num":23,"name":"NIETO CARO ALEX"},{"num":24,"name":"OVIEDO CARDENAS LAURA SOFIA"},{"num":25,"name":"PINILLA MOLINA SARAY STEFANY"},{"num":26,"name":"ROMERO SANCHEZ NATALI SARAY"},{"num":27,"name":"RUIZ GONZALEZ HELEN LUCIANA"},{"num":28,"name":"SALCEDO MARTINEZ NICOLAS"},{"num":29,"name":"URREGO MONROY THOMAS"}],"702":[{"num":1,"name":"ANRANGO MALDONADO YAID JOSUE"},{"num":2,"name":"BELEÑO RIVEROS LEDYS VALENTINA"},{"num":3,"name":"CASTILLO DUQUE DIEGO ALEJANDRO"},{"num":4,"name":"DIAZ TOVAR NATHALY SOFIA"},{"num":5,"name":"GARCIA BELEÑO JUAN SEBASTIAN"},{"num":6,"name":"GARCIA PEREZ JONATHAN DELIMIRO"},{"num":7,"name":"GONZALEZ COHEN YORKIS EDUARDO"},{"num":8,"name":"GUEVARA AVILES NICOLAS ALEJANDRO"},{"num":9,"name":"GUTIERREZ MONTENEGRO NEIMAR JOSE"},{"num":10,"name":"HENAO CUERVO ANA SOFIA"},{"num":11,"name":"HERRERA CABALLERO EMANUEL"},{"num":12,"name":"LOZANO PERALTA SIMON DAVID"},{"num":13,"name":"MENA CUESTA EMELY VALENTINA"},{"num":14,"name":"MENDOZA BERNAL SAMUEL"},{"num":15,"name":"MORALES CASALLAS EMMANUEL ANGEL"},{"num":16,"name":"MORENO REYES KIMBERLY NICOL"},{"num":17,"name":"MUÑOZ PULGARIN ANA MARIA"},{"num":18,"name":"NEUTA OSORIO MARIA ISABELLA"},{"num":19,"name":"OJEDA MEDINA SARA VALENTINA"},{"num":20,"name":"ORTEGON SEGURA SEBASTIAN DAVID"},{"num":21,"name":"PARRA BUITRAGO DANNA SOFIA"},{"num":22,"name":"PEREZ PEREZ MARTIN"},{"num":23,"name":"RODRIGUEZ TERAN LIZETH CAROLINA"},{"num":24,"name":"ROMERO ESCALANTE XAMDER DAVID"},{"num":25,"name":"RUIZ RESTREPO JULIETA"},{"num":26,"name":"TIMAURE MELENDEZ SEBASTIAN ALEXANDER"},{"num":27,"name":"TORREBLANCA TOBIAS GREYDIS LORENA"},{"num":28,"name":"TORRES GARZON VALERY SOFIA"},{"num":29,"name":"VILLALBA MARTINEZ DIEGO"},{"num":30,"name":"VILLAMIL LEAL JAVID MATIAS"}],"703":[{"num":1,"name":"ALVARADO NOVOA KRISTEN VALERIA"},{"num":2,"name":"BERMUDEZ LARA LUIS ALBERTO"},{"num":3,"name":"BONILLA REYES NATALIA"},{"num":4,"name":"CARDOZO OLARTE ANDRES FELIPE"},{"num":5,"name":"CERQUERA PRIETO EDWARD SAMUEL"},{"num":6,"name":"DE FRENZA PEINADO FRANCO ALESSANDRO"},{"num":7,"name":"DE LA HOZ HERNANDEZ NICOLLE DAYANA"},{"num":8,"name":"DUEÑAS GIL MARTIN"},{"num":9,"name":"DURAN VALENCIA LAUREN VALENTINA"},{"num":10,"name":"ESPEJO DIAZ ANDERSON ESNEIDER"},{"num":11,"name":"ESTRADA RINCON ISABELLA CRISTINA"},{"num":12,"name":"GOMEZ SUAREZ JOHAN SAMUEL"},{"num":13,"name":"GUZMAN ALFONSO ANGEL ALBERTO"},{"num":14,"name":"HERNANDEZ ALVAREZ MIGUEL ANGEL"},{"num":15,"name":"MARTINEZ CASTRO AINHOA MIRANDA"},{"num":16,"name":"MEDINA TURMEQUE ANGEL SOFIA"},{"num":17,"name":"MENDEZ FARFAN JUAN FELIPE"},{"num":18,"name":"NAVAS DIAZ SALOME"},{"num":19,"name":"PARRA LEAL GISSELLE GABRIELA"},{"num":20,"name":"PEREZ PINEDA NICOLAS"},{"num":21,"name":"PINILLA ALZATE ANGEL SANTIAGO"},{"num":22,"name":"PULIDO FLOREZ MARIANA"},{"num":23,"name":"RAMIREZ RODRIGUEZ CAMILA SARAHI"},{"num":24,"name":"RESTREPO CARDENAS FABIAN ESTEBAN"},{"num":25,"name":"RODRIGUEZ YARA MARIA JOSE"},{"num":26,"name":"SANCHEZ HERNANDEZ HELEN ISABELLA"},{"num":27,"name":"SUAREZ TIQUE MICHAEL STEVEN"},{"num":28,"name":"TIMAURE MELENDEZ SEBASTIAN ALEXANDER"},{"num":29,"name":"TORO GALLO SAMUEL FELIPE"},{"num":30,"name":"VINASCO ANACONA SARAY YULIANA"}],"801":[{"num":1,"name":"ACERO FALLA ISABELA"},{"num":2,"name":"ACUÑA VERDUGO NICOLLE DANIELA"},{"num":3,"name":"BAUTISTA LOPEZ JUAN ESTEBAN"},{"num":4,"name":"BECERRA MERCHAN MATTIAS"},{"num":5,"name":"BELTRAN VARGAS PAULA VALENTINA"},{"num":6,"name":"BELTRAN VILLALBA SAMUEL ENRIQUE"},{"num":7,"name":"CARO GARCÍA LUCÍA"},{"num":8,"name":"CASTAÑO LOPEZ JUAN CAMILO"},{"num":9,"name":"CASTRO SANGUINO ASHLY DAYANA"},{"num":10,"name":"CORREA FONSECA DIEGO ANDRES"},{"num":11,"name":"DAVILA MARTINEZ JOAN EMMANUEL"},{"num":12,"name":"DE FRENZA PEINADO NATHALIA ANTONELLA"},{"num":13,"name":"DUGARTE UZCATEGUI FABIAN ANDRES"},{"num":14,"name":"FRESNEDA HERRERA LAURA XIMENA"},{"num":15,"name":"GALINDO BARON CARLA MARIANA"},{"num":16,"name":"GALVIS GUTIERREZ DAVID SANTIAGO"},{"num":17,"name":"GARCIA SANCHEZ DANA SOFIA"},{"num":18,"name":"GIRALDO MURCIA CARLA GISEL"},{"num":19,"name":"GONZALEZ GUERRERO ISABELA"},{"num":20,"name":"GONZALEZ LOPEZ YULI XIMENA"},{"num":21,"name":"JIMENES LAGUADO MARÍA JOSÉ"},{"num":22,"name":"LLANOS HUERTAS SARA ISABELLA"},{"num":23,"name":"MARINEZ MAYORGA VALERY DAYAN"},{"num":24,"name":"MENDIETA MEJIA JUAN ANGEL"},{"num":25,"name":"MORENO LARA NICOLAS"},{"num":26,"name":"OJEDA HERRERA MAURA ALEJANDRA"},{"num":27,"name":"PARRA VILLADA SARITHA"},{"num":28,"name":"PINEDA OCHOA NICOLAS ADAN"},{"num":29,"name":"REVERON RIVEROS CAMILA VALERIA"},{"num":30,"name":"RIASCOS CAICEDO CESAR ADRIAN"},{"num":31,"name":"RODRIGUEZ MANRIQUE DAVID ESTEBAN"},{"num":32,"name":"SANCHEZ FERNANDEZ MIGUEL ANGEL"},{"num":33,"name":"TRIVIÑO GUALTEROS JULIAN DAVID"}],"802":[{"num":1,"name":"ACOSTA AGUIAR MIGUEL EDUARDO"},{"num":2,"name":"ARIAS LEON JONATHAN GABRIEL"},{"num":3,"name":"ARRIETA VERGARA ANNY SOFIA"},{"num":4,"name":"BELEÑO BETANCOURTH ARIADNA ALEJANDRA"},{"num":5,"name":"BUITRAGO ANGEL MARIA JOSE"},{"num":6,"name":"CABEZAS MARTINEZ SOLL MARIX"},{"num":7,"name":"CARRASCAL DE LA TORRE JADER STIVEN"},{"num":8,"name":"CASTRO LASTRA AURA SOFIA"},{"num":9,"name":"COLORADO OLMOS NICOLE VALERIA"},{"num":10,"name":"CORTES RINCON OSWEILYN ESTHER"},{"num":11,"name":"CORTES ROCHA JUAN FELIPE"},{"num":12,"name":"FERNANDEZ BUENDIA SEBASTIAN JOSE"},{"num":13,"name":"FORERO CARRERO DANNA VALENTINA"},{"num":14,"name":"GARCIA AVELLANEDA SAMUEL JOSE"},{"num":15,"name":"GARCIA MORANTES LUIS SEBASTIAN"},{"num":16,"name":"HEREDIA RUIZ MARIA CAMILA"},{"num":17,"name":"HERNANDEZ PEREZ CAMILA YIREH"},{"num":18,"name":"LAVERDE ALONSO JOEL"},{"num":19,"name":"MENDEZ CALDERON SAMUEL"},{"num":20,"name":"MORENO BECERRA IVAN DARIO"},{"num":21,"name":"MURIEL GAMEZ JORDAN DAVID"},{"num":22,"name":"MUÑOZ MONTES ISABELLA"},{"num":23,"name":"NAVARRETE NIÑO NICOL TATIANA"},{"num":24,"name":"OLAYA PEREZ MELANY GABRIELA"},{"num":25,"name":"ORDONEZ CIFUENTES JUAN ANGEL"},{"num":26,"name":"ORTEGA CHAVARRA SOFIA"},{"num":27,"name":"PEDRAZA GONZALEZ JUAN JOSE"},{"num":28,"name":"PRIETO POVEDA DAVID FELIPE"},{"num":29,"name":"PUERTO ORTIZ GABRIELA"},{"num":30,"name":"PULIDO FLOREZ MARIA ISABELLA"},{"num":31,"name":"REBOLLEDO BUSTAMANTE ISABELLA SOFIA"},{"num":32,"name":"ROA ORMAZA SAMUEL HUMBERTO"},{"num":33,"name":"ROJAS RICAURTE DIEGO ISAAC"},{"num":34,"name":"ZAMBRANO PORTELA ANAMARIA"}],"803":[{"num":1,"name":"AMADO FRESNEDA SERGIO NICOLAS"},{"num":2,"name":"APARICIO CHICACAUSA EIMY"},{"num":3,"name":"BANGURA DUNDUMI NICOL DAHIANA"},{"num":4,"name":"BETANCOURT RODRIGUEZ ZARETH SOFIA"},{"num":5,"name":"BUITRAGO LOPEZ ESTEBAN"},{"num":6,"name":"CEBALLOS RENGIFO TAYRONA"},{"num":7,"name":"CORTES TARAZONA JOSE DAVID"},{"num":8,"name":"ESQUIVEL PUENTES LIANNE ANTONIA"},{"num":9,"name":"FERNANDEZ RAMIREZ ANDRES MAURICIO"},{"num":10,"name":"GONZALEZ GUERRERO ISABELLA"},{"num":11,"name":"GONZALEZ LOPEZ SARA"},{"num":12,"name":"GUERRERO MUÑOZ MARIA ESTEFANIA"},{"num":13,"name":"GUTIERREZ BLANCO LUCIANA CAMILA"},{"num":14,"name":"HERNANDEZ MURCIA VALERIE SOFIA"},{"num":15,"name":"HERRERA PEÑUELA EVELING SOFIA"},{"num":16,"name":"LESMES ROMERO JUAN CAMILO"},{"num":17,"name":"LOPEZ GOMEZ ANDRUW JHOSUA"},{"num":18,"name":"LOZANO MEDINA JUAN ESTEBAN"},{"num":19,"name":"MARQUEZ OVIEDO SAMUEL ANDRES"},{"num":20,"name":"MENDEZ ARIZA ARTURO ENRIQUE"},{"num":21,"name":"MONTEALEGRE CALVO SAMUEL ALBERTO"},{"num":22,"name":"MORENO ARIZA DANIEL ESTEBAN"},{"num":23,"name":"MORENO BENAVIDES CRISTIAN FELIPE"},{"num":24,"name":"MUÑOZ TORRES DANIEL FELIPE"},{"num":25,"name":"NUMPAQUE SOTELO ISABELLA"},{"num":26,"name":"PINEDO SERPA LINA MARCELA"},{"num":27,"name":"PINILLA MOLINA JUDY ALEXANDRA"},{"num":28,"name":"PLAZA IBAÑEZ MARTIN ALEJANDRO"},{"num":29,"name":"PULIDO GOMEZ DANIELA"},{"num":30,"name":"REALES CERDA DAYIMAR DANIELA"},{"num":31,"name":"RIOS GALINDO ANIBAL EMMANUEL"},{"num":32,"name":"RODRIGUEZ CASTRO ANYELY FERNANDA"},{"num":33,"name":"RODRIGUEZ HERRERA JULIANA"},{"num":34,"name":"RODRIGUEZ TORRES DAVID ESTIVEN"},{"num":35,"name":"ROMERO ALVAREZ ANDERSSON"},{"num":36,"name":"ROMERO IBARRA SAMUEL SALAH"},{"num":37,"name":"RONDANO TOVAR SALOME"},{"num":38,"name":"SANTAMARIA TORRES ANDRES SANTIAGO"},{"num":39,"name":"TRUJILLO CALDERON JUAN SEBASTIAN"}],"901":[{"num":1,"name":"AVILA NOGUERA SANTIAGO ANDRES"},{"num":2,"name":"BAYONA BUITRAGO MARIANA"},{"num":3,"name":"BENAVIDES SANCHEZ ANDRES STIVEN"},{"num":4,"name":"BERRIO DIAZ DANNA SOFIA"},{"num":5,"name":"BLANCO ANDRADE DANIEL ANDRES"},{"num":6,"name":"CASTILLO OLAYA EMILY ZULAY"},{"num":7,"name":"CASTRO LADINO PAULA ANDREA"},{"num":8,"name":"CELY SANCHEZ SAMUEL SANTIAGO"},{"num":9,"name":"CIFUENTES TARAZONA LUIS GABRIEL"},{"num":10,"name":"CISNEROS CISNEROS DALIA ALEJANDRA"},{"num":11,"name":"DIAZ GOMEZ ALLYSON SOFIA"},{"num":12,"name":"DOMINGUEZ CONTRERAS ADRIANA LUCIA"},{"num":13,"name":"FONSECA RODRIGUEZ SARAH"},{"num":14,"name":"GARCIA CAMPOS SHARIT NYCOLLE"},{"num":15,"name":"GARCIA GARCIA JHON ANDERSON"},{"num":16,"name":"GARCIA GARCIA MIGUEL ANGEL"},{"num":17,"name":"GARCIA VERA JORGE ELIAZAR"},{"num":18,"name":"HENAO PARADA ISABELLA"},{"num":19,"name":"HERNANDEZ CORREA DANNA GABRIELA"},{"num":20,"name":"HERRERA OJEDA LUISA ARIADNA"},{"num":21,"name":"IBAÑEZ CASTILLO HELLEN SOPHIA"},{"num":22,"name":"LEON TIGUAQUE ERIC SANTIAGO"},{"num":23,"name":"MEJIA SUAREZ SAMUEL"},{"num":24,"name":"MOLINA GARAVITO ANA SOFIA"},{"num":25,"name":"MONROY VELANDIA LUIS CARLOS"},{"num":26,"name":"MORALES PARODI DERWIN JHOEL"},{"num":27,"name":"PARRA GONZALEZ LEIDY VALENTINA"},{"num":28,"name":"PATIÑO QUESADA JUAN DAVID"},{"num":29,"name":"PINEDA VALERO JULIAN ANDRES"},{"num":30,"name":"RAMIREZ BELTRAN MELANI DAYAN"},{"num":31,"name":"RODRIGUEZ SAMBONI PAULA LIZETH"},{"num":32,"name":"RUIZ SANABRIA SANTIAGO"},{"num":33,"name":"SABOGAL PERILLA HEILED VALENTINA"},{"num":34,"name":"SALCEDO SARMIENTO DEYVI ALEXANDER"},{"num":35,"name":"SARMIENTO ORJUELA JEREMY FARLEY"},{"num":36,"name":"SASTRE GUZMAN HELEN JULIANA"},{"num":37,"name":"URBINA MONCADA JUAN DIEGO"},{"num":38,"name":"VALENZUELA CAVIEDES NICOLAS"}],"902":[{"num":1,"name":"ALIPIO GUTIERREZ SANTIAGO"},{"num":2,"name":"CARRILLO FLOREZ YIREH DAYANA"},{"num":3,"name":"CASTRO GARCIA LINA SOFIA"},{"num":4,"name":"CORTES MUNEVAR EDWARD SANTIAGO"},{"num":5,"name":"DELATORRE CANDO DANNA ZARETH"},{"num":6,"name":"GALLEGO AMAYA DOMINIQUE SHARID"},{"num":7,"name":"IGLESIA MORALES ZARA DANIELA"},{"num":8,"name":"LARA BARBON NICOLE CAMILA"},{"num":9,"name":"LONDOÑO CADENA DANA VALERIA"},{"num":10,"name":"MACIAS VELASCO SERGIO DAVID"},{"num":11,"name":"MANCILLA CARO SAMUEL DAVID"},{"num":12,"name":"MARIN RODRIGUEZ HEIDY LORENA"},{"num":13,"name":"MARTINEZ ROMERO ISABELLA"},{"num":14,"name":"MENDEZ PATARROYO JUAN SEBASTIAN"},{"num":15,"name":"MEZA ORTIZ JAFETH SANTIAGO"},{"num":16,"name":"MONCADA DIAZ GOHANN EMMANUEL"},{"num":17,"name":"MONCADA LOPEZ SAHYAN NIKOLL"},{"num":18,"name":"MORENO CITA SARA GABRIELA"},{"num":19,"name":"MORENO RUDA ERIK SANTIAGO"},{"num":20,"name":"MORENO VARGAS JUAN SEBASTIAN"},{"num":21,"name":"MORFIL ROMERO NEIDY LUZ"},{"num":22,"name":"ORJUELA ANDRADE ANGIE VALENTINA"},{"num":23,"name":"OROZCO MARTINEZ SAHARA"},{"num":24,"name":"POLOCHE RODRIGUEZ ERICK DUVAN"},{"num":25,"name":"QUINTERO GARCIA NICOLL SOFIA"},{"num":26,"name":"RAMIREZ RODRIGUEZ CARLOS JOSE"},{"num":27,"name":"RETAVISCA VELASCO JUAN SEBASTIAN"},{"num":28,"name":"RINCÓN CUY ANDRES SEBASTIAN"},{"num":29,"name":"RODRIGUEZ RAMIREZ VALENTINA"},{"num":30,"name":"ROMERO SANCHEZ DANIEL ESTEBAN"},{"num":31,"name":"SALCEDO LOBO MIGUEL ANGEL"},{"num":32,"name":"SANCHEZ BERMUDEZ MARIA ISABELLA"},{"num":33,"name":"SOACHA RINCON DOMINICK ADRIAN"},{"num":34,"name":"VALENCIA MELECIO STEFANNY PAOLA"},{"num":35,"name":"VARGAS SANDOVAL ALEJANDRA"},{"num":36,"name":"VEGA MUÑOZ MARIA ALEJANDRA"}],"903":[{"num":1,"name":"ALVAREZ ARANGO KAROLAY ANDREA"},{"num":2,"name":"AMEZQUITA BELTRAN YAIDI GIULIANA"},{"num":3,"name":"ARCINIEGAS NIÑO HERNAN DARIO"},{"num":4,"name":"BALAGUERA CASTRO JOHANA"},{"num":5,"name":"BECERRA MERCHAN VALERIA"},{"num":6,"name":"BETANCOURT GONZALEZ EZEQUIEL ALEXANDRO"},{"num":7,"name":"BUITRAGO MORA VALENTINA"},{"num":8,"name":"CARDONA DUARTE JUNIOR CRISTIANO"},{"num":9,"name":"CASTILLA HERNANDEZ VALERY"},{"num":10,"name":"CASTRO IMITOLA LAUREN ANDREA"},{"num":11,"name":"CONTRERAS CAMARGO LINA SOFIA"},{"num":12,"name":"ESCOBAR RANGEL JUAN SEBASTIAN"},{"num":13,"name":"GIL ORTIZ SARAH CAMILA"},{"num":14,"name":"GOMEZ MARTINEZ KAROL VALENTINA"},{"num":15,"name":"GUATAQUIRA CRUZ JORGE MIGUEL"},{"num":16,"name":"GUEVARA MOLINA MARIA PAULA"},{"num":17,"name":"GUZMAN CARVAJAL LIZ YOHANDYS"},{"num":18,"name":"HERNANDEZ HERNANDEZ KEVIN SANTIAGO"},{"num":19,"name":"JARAMILO ANNYS"},{"num":20,"name":"JUNCO RODRIGUEZ MANUELA ALEXANDRA"},{"num":21,"name":"LINCE ORDOÑEZ DYLAN MATIAS"},{"num":22,"name":"LOPEZ POLANIA SAMUEL"},{"num":23,"name":"LUNA BARRETO IAN SAMUEL"},{"num":24,"name":"MOJICA MOJICA JUAN MANUEL"},{"num":25,"name":"REINA HURTADO JHOJAN ALEXANDER"},{"num":26,"name":"RETAVISCA VELASCO ZAMARA"},{"num":27,"name":"ROA BALLESTEROS NICOL DAYANA"},{"num":28,"name":"RODRIGUEZ BALLESTEROS MAXIMILIANO"},{"num":29,"name":"SANCHEZ GOMEZ MAYKOL ALEJANDRO"},{"num":30,"name":"SANCHEZ MORENO GABRIELA"},{"num":31,"name":"SANCHEZ RAMIREZ IVONNE VALERIA"},{"num":32,"name":"SANCHEZ SANTANA DANA YULIED"},{"num":33,"name":"SARMIENTO NONSOQUE DIDIER ALEXANDER"},{"num":34,"name":"SEPULVEDA CASTAÑO SAMUEL STEVEN"},{"num":35,"name":"SIERRA BARRERO JOHEL SANTIAGO"},{"num":36,"name":"SILVA ARIZA JUAN CAMILO"},{"num":37,"name":"TORRES RAMIREZ OSCAR SANTIAGO"},{"num":38,"name":"TRIVIÑO ROMERO LEYLA DANIELA"},{"num":39,"name":"TRONCOSO LOPEZ SHARON MARIANA"},{"num":40,"name":"URDANETA CANTILLO MARIA JOSE"},{"num":41,"name":"VARGAS PARRA CARLOS DAVID"}],"1001":[{"num":1,"name":"ANAMA ROQUE ALEJANDRO"},{"num":2,"name":"AYALA GARZON STEFANNY ALEJANDRA"},{"num":3,"name":"BARBOSA CELIS JERONIMO"},{"num":4,"name":"BECERRA GAMEZ MARA VALERIA"},{"num":5,"name":"BERTEL BARBON RAFAEL DAVID"},{"num":6,"name":"CARABALI MARTINEZ SARA NICOLLE"},{"num":7,"name":"CASTELLANOS SÁNCHEZ DYLAN SANTIAGO"},{"num":8,"name":"CASTRO LADINO PAULA ANDREA"},{"num":9,"name":"CELIS ORTIZ ROMAN ARDEY"},{"num":10,"name":"CHAPARRO ARIZA DULCE MELANNIE"},{"num":11,"name":"CONTRERAS CARO DAYANE SOFIA"},{"num":12,"name":"CONTRERAS MOSQUERA MARIANA"},{"num":13,"name":"CONTRERAS SAVALA JUAN DAVID"},{"num":14,"name":"DIAZ CARDENAS JAZMIN ALEJANDRA"},{"num":15,"name":"FIGUEREDO RONCANCIO PAULA"},{"num":16,"name":"GARCIA POLOCHE JORGE IVAN"},{"num":17,"name":"GARCIA POLOCHE JUAN ESTEBAN"},{"num":18,"name":"GUEVARA MEDINA SEBASTIAN"},{"num":19,"name":"HERRERA CABALLERO SHAROL MISHEL"},{"num":20,"name":"JIMENEZ LAGUADO JUAN"},{"num":21,"name":"JIMENEZ LAURA SOFIA"},{"num":22,"name":"LOPEZ GONZALEZ ELIANA"},{"num":23,"name":"MEDINA MORENO YESSY PAOLA"},{"num":24,"name":"MENDEZ JAIME MARIA PAULA"},{"num":25,"name":"MOLINA ANAVE ELIANA CATERIN"},{"num":26,"name":"MURILLO MUÑOZ ANDRES FELIPE"},{"num":27,"name":"PARGA CASTILLO JUAN PABLO"},{"num":28,"name":"PORRAS FLOREZ ANDRES STIVEN"},{"num":29,"name":"QUINTAS HERNANDEZ ANDRES FELIPE"},{"num":30,"name":"RODRIGUEZ AZUAJE JEISON JOSE"},{"num":31,"name":"TOBAR GARCIA DANA SAMANTHA"},{"num":32,"name":"TORRES VANEGAS GAEL DAVID"},{"num":33,"name":"VALDERRAMA CUBILLOS LAURA SOFIA"},{"num":34,"name":"VIVAS PENAGOS JUAN FELIPE"}],"1002":[{"num":1,"name":"ABRIL MORENO NICOL"},{"num":2,"name":"AREVALO MURILLO JUAN MARTIN"},{"num":3,"name":"ARIAS BUENDÍA HEIDY CAROLINA"},{"num":4,"name":"BAUTISTA BAYONA JUAN DIEGO"},{"num":5,"name":"BECERRA RAMIREZ SARA VALENTINA"},{"num":6,"name":"CEPEDA GARCIA EDWAR ALEXANDER"},{"num":7,"name":"COCA RIVERA JUAN SEBASTIAN"},{"num":8,"name":"CRUZ GALINDO SALMA"},{"num":9,"name":"ESCOBAR RANGEL ANGEL ADRIAN"},{"num":10,"name":"GOMEZ PINTO THOMAS ESTEBAN"},{"num":11,"name":"GUTIERREZ LEON ROSMARLY ESTRELLA"},{"num":12,"name":"HERNANDEZ ALVAREZ BRIAN ALEJANDRO"},{"num":13,"name":"JIMENEZ CHAVEZ WILDELYS MARIA"},{"num":14,"name":"LEON AVELLA ANGEL DAVID"},{"num":15,"name":"LINARES GOMEZ JUAN CAMILO"},{"num":16,"name":"LOPEZ SOSA JOHAN STIVEN"},{"num":17,"name":"LOPEZ SUAREZ JEIDY VANESSA"},{"num":18,"name":"LOPEZ VEGA JOHN BRAYAN"},{"num":19,"name":"LUENGAS BONILLA MICHELL PAULINA"},{"num":20,"name":"MARTINEZ GOMEZ DIEGO ARMANDO"},{"num":21,"name":"MATA LASSO MATIAS ALEJANDRO"},{"num":22,"name":"MENDEZ FERNANDEZ CRISTIAN JAVIER"},{"num":23,"name":"PORRAS MORENO JUAN SEBASTIAN"},{"num":24,"name":"RAMIREZ RAMIREZ JOHAN JAIR"},{"num":25,"name":"REYES MELO ANDRES FELIPE"},{"num":26,"name":"RIVERO MARTINEZ GELLENS NATASCHA"},{"num":27,"name":"RODRIGUEZ VARGAS JUAN ESTEBAN"},{"num":28,"name":"SALINAS MORENO VALENTINA"},{"num":29,"name":"SANCHEZ LAGOS SHANON CAMILA"},{"num":30,"name":"SIERRA CASTIBLANCO CRISTIAN STEVEN"},{"num":31,"name":"TORRES MARQUEZ MIGUEL ANGEL"},{"num":32,"name":"URECHE PEÑA ANDREA DE LOS ANGELES"},{"num":33,"name":"VARGAS VERA DANA VALENTINA"},{"num":34,"name":"VILLALOBOS SALINAS JUAN ESTEBAN"}],"1003":[{"num":1,"name":"ACOSTA PATERNINA ISABELLA"},{"num":2,"name":"BECERRA MAYO JERONIMO"},{"num":3,"name":"BONILLA GALINDA BRIAN ALEJANDRO"},{"num":4,"name":"CAMACHO OSPINA MICHAEL ALEXANDER"},{"num":5,"name":"CASTRO LADINO DAVID ROBERTO"},{"num":6,"name":"CHAUTA GUARIN JOEL SEBASTIAN"},{"num":7,"name":"COBOS GUEVARA MANUELA"},{"num":8,"name":"CORBA PULIDO MIGUEL ANGEL"},{"num":9,"name":"DUN VERGARA ORLEIBIS GEORGINA"},{"num":10,"name":"GARAY VILLALBA ANDRES FELIPE"},{"num":11,"name":"GARZON ORTIZ LEIDY DANIELA"},{"num":12,"name":"HERNANDEZ CADENA WILSON DANIEL"},{"num":13,"name":"LEON CASTRO JUAN CAMILO"},{"num":14,"name":"LONGA ROJAS MARIA JOSE"},{"num":15,"name":"LOPEZ RODRIGUEZ KAROL YINETH"},{"num":16,"name":"MAHECHA BELLO VALERY"},{"num":17,"name":"MALAGON RICO SOPHIA"},{"num":18,"name":"MARQUEZ VILLEGAS SNEYKER VLADIMIR"},{"num":19,"name":"MENDEZ MORENA HANNAH VALERIA"},{"num":20,"name":"MIRANDA VELOSA JUAN ESTEBAN"},{"num":21,"name":"MONTAÑO CASTRO ALEJANDRO"},{"num":22,"name":"MORENO BECERRA MARIA ALEJANDRA"},{"num":23,"name":"PICHAMBA CANDO JOSEP JOEL"},{"num":24,"name":"PINZON PALOMA LAURA JULIANA"},{"num":25,"name":"RIVERA RAMIREZ ANGEL DAVID"},{"num":26,"name":"SALAZAR OLAYA ISABELA"},{"num":27,"name":"SOACHA RINCON GABRIEL ALEJANDRO"},{"num":28,"name":"SOTO GUZMAN SHARON GABRIELA"},{"num":29,"name":"TIMAURE MELENDEZ AARON ALEXANDER"},{"num":30,"name":"TORRES CABRALES NICOLE SOFIA"},{"num":31,"name":"VARGAS AYURE JULIAN SANTIAGO"},{"num":32,"name":"VELASQUEZ PESTANA LUIS MANUEL"}],"1101":[{"num":1,"name":"ACEVEDO OROZCO SARA CAMILA"},{"num":2,"name":"ALDANA TRIANA VALERY JULIANA"},{"num":3,"name":"ALVARADO OLIVERA SOFIHA VALENTINA"},{"num":4,"name":"ALZAMORA CAMARGO JORGE SANTIAGO"},{"num":5,"name":"ARAQUE SOTELO NICOLAS"},{"num":6,"name":"ARIAS CARDOZO GABRIELA"},{"num":7,"name":"ARIZA GONZALEZ SANTIAGO"},{"num":8,"name":"CANO TOBAR MIGUEL SANTIAGO"},{"num":9,"name":"CORZO SILVA DIANA GABRIELA"},{"num":10,"name":"DIAZ GOMEZ JUAN DAVID"},{"num":11,"name":"FAJARDO PINEDA ISISS ALEJANDRA"},{"num":12,"name":"GUZMÁN ROJAS MARIANA"},{"num":13,"name":"HEREDIA RUIZ JEREMYK SANTIAGO"},{"num":14,"name":"HERNANDEZ VILLANUEVA SHAIRA"},{"num":15,"name":"JIMENEZ POLOCHE MIGUEL ANGEL"},{"num":16,"name":"LOPEZ GOMEZ ANGIE VANESA"},{"num":17,"name":"MARIN MENZA ELKIN YOANDRY"},{"num":18,"name":"MARTIN RODRIGUEZ CAROL STEFANY"},{"num":19,"name":"MEDINA ARDILA NICOLAS"},{"num":20,"name":"MEZA MEZA JESIKA PAOLA"},{"num":21,"name":"NIETO ALIPIO ISABELA"},{"num":22,"name":"PAEZ BELTRAN JUAN JOSE"},{"num":23,"name":"PELAEZ GONZALEZ JESIREN"},{"num":24,"name":"PRIETO LOZANO PAULA"},{"num":25,"name":"QUINTERO CASTILLO JEFRY JHONAIKER"},{"num":26,"name":"SANCHEZ REYES ANDRES FELIPE"},{"num":27,"name":"SARMIENTO VASQUEZ ASHLEY MICHELLE"},{"num":28,"name":"SUAREZ ACUÑA JUAN CAMILO"},{"num":29,"name":"VASQUEZ SANCHEZ LAURA SOFIA"}],"1102":[{"num":1,"name":"ACOSTA AGUASACO RAFAEL"},{"num":2,"name":"ALONSO RAMOS GABRIELA"},{"num":3,"name":"ARAQUE SOTELO MAICOL"},{"num":4,"name":"BOLIVAR PRADA JORGE LEONARDO"},{"num":5,"name":"CAMACHO REYES IRWING SANTIAGO"},{"num":6,"name":"CAMPO GUTIERREZ KAREN LIZETH"},{"num":7,"name":"CEBALLOS CAMACHO SOFIA"},{"num":8,"name":"CONTADOR DUARTE SAHRA SOFIA"},{"num":9,"name":"CORREAL LUNA JULIAN SANTIAGO"},{"num":10,"name":"DIAZ RODRIGUEZ ANA SOFIA"},{"num":11,"name":"FORERO GOMEZ JUAN PABLO"},{"num":12,"name":"GALLEGO AMAYA JHOAN EMMANUEL"},{"num":13,"name":"GARZON BARRERO TOMAS"},{"num":14,"name":"GONZALEZ MURCIA LAURA MARIANA"},{"num":15,"name":"GUERRERO MARTINEZ TAMARA"},{"num":16,"name":"JIMENEZ COBOS JHON ALEXANDER"},{"num":17,"name":"JIMENEZ HORTUA MARIA VALENTINA"},{"num":18,"name":"LOPEZ BARON SARA VALERIA"},{"num":19,"name":"MOETE GONZALEZ DELBER ANDRES"},{"num":20,"name":"MORALES OSPINA DYLAN SAMUEL"},{"num":21,"name":"ORTIZ GALVIS SAMUEL STIVEN"},{"num":22,"name":"PARRA VEGA JENNY LORENA"},{"num":23,"name":"RAMOS PARRA DIEGO ALEXANDER"},{"num":24,"name":"RUEDA DONADO CAMILA"},{"num":25,"name":"RUIZ CHAPARRO TATIANA JARITH"},{"num":26,"name":"SUAREZ PINZON SARA"},{"num":27,"name":"VELA BERNAL JUAN PABLO"},{"num":28,"name":"VELANDIA BLANCO ARIANNY ALEJANDRA"},{"num":29,"name":"YULE BELLO CARLOS GUSTAVO"}],"1103":[{"num":1,"name":"AREVALO MUNAR HELEN GISETH"},{"num":2,"name":"AZOCAR MADRID RAMON ALBERTO"},{"num":3,"name":"CARDONA ROJAS ELKIN SANTIAGO"},{"num":4,"name":"CARDOSO GALEANO JUNIOR ORLANDO"},{"num":5,"name":"CARVAJAL REYES STEPHANY PAOLA"},{"num":6,"name":"CASTRO GARCIA JULIAN STEVEN"},{"num":7,"name":"CATUMBA MENDEZ MARIA CAMILA"},{"num":8,"name":"DUARTE HIGUERA NICOLLE"},{"num":9,"name":"GOMEZ SARCOS ALEJANDRA VALENTINA"},{"num":10,"name":"GUARIN SANCHEZ MATEO"},{"num":11,"name":"GUEVARA GONZALES MATIAS"},{"num":12,"name":"HERNANDEZ SOTELO MARIANA"},{"num":13,"name":"MARROQUÍN PULICHE MICHELLE NICOL"},{"num":14,"name":"MARTINEZ PINZON JHONATAN MATIAS"},{"num":15,"name":"MELO SANABRIA ANYELINA LIZETH"},{"num":16,"name":"MONROY MACEA MARIA ALEXANDRA"},{"num":17,"name":"MORALES CONTRERAS KAROL ANDREA"},{"num":18,"name":"MUETE LEYTON DANIEL JACOB"},{"num":19,"name":"OLARTE RODRIGUEZ MATIAS SANTIAGO"},{"num":20,"name":"ORTIZ JHONNATAN DAVID"},{"num":21,"name":"PAEZ CORPAS SAMUEL FELIPE"},{"num":22,"name":"PEÑA VARGAS WESLLY ZARAY"},{"num":23,"name":"QUINTERO RODRIGUEZ NIKOL SOFIA"},{"num":24,"name":"RUEDA BLANCO NELSON ESTYBEN"},{"num":25,"name":"SILVA QUIROGA LUISA FERNANDA"},{"num":26,"name":"VELASCO ARISTIZABAL MARIANNA"},{"num":27,"name":"VELEZ ESPITIA MARIANA"},{"num":28,"name":"VIVAS POVEDA JACKZEL DAVID"}]};
+const API_URL = "https://script.google.com/macros/s/AKfycbxepm6bwpqYsYdIE1sUVFvsWUcldtS5NeK-mvX7A8WbtnmbsHjMHVdnOQG0ErW93thajA/exec";
+const HOLIDAYS = new Set([
+  '2026-01-01','2026-01-12','2026-03-23','2026-04-02','2026-04-03','2026-05-01',
+  '2026-05-18','2026-06-08','2026-06-15','2026-06-29','2026-07-20','2026-08-07',
+  '2026-08-17','2026-10-12','2026-11-02','2026-11-16','2026-12-08','2026-12-25'
+]);
+const START_DATE = '2026-04-13';
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+let cur = null;
+let sts = {};
+let courseDates = {};
+let records = {};
+let remoteLoaded = {};
+let activeMonth = 'all';
+
+function pad(n) { return String(n).padStart(2, '0'); }
+function iso(date) { return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`; }
+function monthKeyFromDate(date) { return `${date.getFullYear()}-${pad(date.getMonth()+1)}`; }
+function monthKeyLabel(key) { const [y,m] = key.split('-').map(Number); return `${MONTHS[m-1]} ${y}`; }
+function dayLabel(dateStr) { const d = new Date(dateStr + 'T00:00:00'); return DAYS[d.getDay()]; }
+function isWorkday(dateStr) { const d = new Date(dateStr + 'T00:00:00'); const day = d.getDay(); return day >= 1 && day <= 5 && !HOLIDAYS.has(dateStr); }
+
+function buildMonthDates(year, month) {
+  const res = [];
+  const first = new Date(year, month - 1, 1);
+  const last = new Date(year, month, 0);
+  for (let i = 1; i <= last.getDate(); i++) {
+    const d = new Date(year, month - 1, i);
+    const s = iso(d);
+    if (month === 4 && year === 2026 && s < START_DATE) continue;
+    if (isWorkday(s)) res.push(s);
+  }
+  return res;
+}
+
+function initialMonthKeys() { return ['2026-04']; }
+
+function initCourse(id) {
+  if (!sts[id]) sts[id] = JSON.parse(JSON.stringify(STUDENTS[id] || []));
+  if (!courseDates[id]) {
+    courseDates[id] = {};
+    initialMonthKeys().forEach(key => ensureMonthLoaded(id, key));
+  }
+  if (!records[id]) records[id] = {};
+  ensureStudentRecords(id);
+}
+
+function ensureMonthLoaded(courseId, key) {
+  if (courseDates[courseId][key]) return;
+  const [year, month] = key.split('-').map(Number);
+  courseDates[courseId][key] = buildMonthDates(year, month);
+}
+
+function getLoadedMonthKeys(courseId) {
+  return Object.keys(courseDates[courseId] || {}).sort();
+}
+
+function getAllDates(courseId) {
+  return getLoadedMonthKeys(courseId).flatMap(key => courseDates[courseId][key]);
+}
+
+function ensureStudentRecords(courseId) {
+  const dates = getAllDates(courseId);
+  (sts[courseId] || []).forEach(student => {
+    if (!records[courseId][student.num]) records[courseId][student.num] = {};
+    dates.forEach(date => {
+      if (!records[courseId][student.num][date]) records[courseId][student.num][date] = { a:'', u:'' };
+    });
+  });
+}
+
+function nextMonthKey(courseId) {
+  const keys = getLoadedMonthKeys(courseId);
+  const last = keys[keys.length - 1] || '2026-04';
+  let [year, month] = last.split('-').map(Number);
+  month += 1;
+  if (month > 12) { month = 1; year += 1; }
+  return `${year}-${pad(month)}`;
+}
+
+async function apiPost(obj) {
+  const body = 'payload=' + encodeURIComponent(JSON.stringify(obj));
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body
+  });
+  return await res.json();
+}
+
+async function apiGet(params) {
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_URL}?${qs}`);
+  return await res.json();
+}
+
+async function syncStudentsToSheet(courseId) {
+  return await apiPost({
+    action: 'syncStudents',
+    curso: courseId,
+    students: (sts[courseId] || []).map(s => ({ num: s.num, name: s.name }))
+  });
+}
+
+function applyRemoteData(courseId, data) {
+  if (!data || !data.headers || !data.rows) return;
+  const headers = data.headers;
+  const rows = data.rows;
+  const numIndex = headers.indexOf('N°');
+  const nameIndex = headers.indexOf('ESTUDIANTE');
+  if (numIndex === -1 || nameIndex === -1) return;
+
+  headers.forEach(h => {
+    if (typeof h !== 'string') return;
+    let date = null;
+    if (h.endsWith('_ASIST')) date = h.replace('_ASIST','');
+    if (h.endsWith('_UNIF')) date = h.replace('_UNIF','');
+    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && isWorkday(date)) {
+      ensureMonthLoaded(courseId, date.slice(0,7));
+      if (!courseDates[courseId][date.slice(0,7)].includes(date)) courseDates[courseId][date.slice(0,7)].push(date);
+      courseDates[courseId][date.slice(0,7)].sort();
+    }
+  });
+
+  ensureStudentRecords(courseId);
+
+  rows.forEach(row => {
+    const studentNum = Number(row[numIndex] || 0);
+    const studentName = String(row[nameIndex] || '').trim();
+    const localStudent = sts[courseId].find(s => Number(s.num) === studentNum || String(s.name).trim() === studentName);
+    if (!localStudent) return;
+    headers.forEach((header, colIndex) => {
+      const value = String(row[colIndex] || '').trim();
+      if (!value) return;
+      if (header.endsWith('_ASIST')) {
+        const date = header.replace('_ASIST','');
+        if (!records[courseId][localStudent.num]) records[courseId][localStudent.num] = {};
+        if (!records[courseId][localStudent.num][date]) records[courseId][localStudent.num][date] = { a:'', u:'' };
+        records[courseId][localStudent.num][date].a = value;
+      }
+      if (header.endsWith('_UNIF')) {
+        const date = header.replace('_UNIF','');
+        if (!records[courseId][localStudent.num]) records[courseId][localStudent.num] = {};
+        if (!records[courseId][localStudent.num][date]) records[courseId][localStudent.num][date] = { a:'', u:'' };
+        records[courseId][localStudent.num][date].u = value === 'exc' ? 'permiso' : value;
+      }
+    });
+  });
+}
+
+async function loadCourseFromSheets(courseId) {
+  const data = await apiGet({ action: 'getCourse', curso: courseId });
+  if (data && data.ok) applyRemoteData(courseId, data);
+}
+
+function renderSidebar() {
+  const q = (document.getElementById('courseSearch').value || '').toLowerCase();
+  const list = document.getElementById('coursesList');
+  list.innerHTML = '';
+  const grouped = {};
+  Object.keys(STUDENTS)
+    .filter(c => c.includes(q) || `curso ${c}`.includes(q))
+    .forEach(c => {
+      const g = c.replace(/\d+$/, '');
+      if (!grouped[g]) grouped[g] = [];
+      grouped[g].push(c);
+    });
+
+  Object.entries(grouped).forEach(([g, courses]) => {
+    const label = document.createElement('div');
+    label.className = 'grade-title';
+    label.textContent = `Grado ${g}`;
+    list.appendChild(label);
+    courses.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'course-btn' + (cur === c ? ' active' : '');
+      btn.innerHTML = `<span>Curso ${c}</span><span class="course-count">${(STUDENTS[c] || []).length}</span>`;
+      btn.onclick = () => selectCourse(c);
+      list.appendChild(btn);
+    });
+  });
+}
+
+function renderMonthTabs() {
+  const wrap = document.getElementById('monthTabs');
+  if (!cur) { wrap.innerHTML = ''; return; }
+  const keys = getLoadedMonthKeys(cur);
+  const allBtn = `<button class="tab ${activeMonth === 'all' ? 'active' : ''}" onclick="setMonthTab('all')">Todos</button>`;
+  wrap.innerHTML = allBtn + keys.map(key => `<button class="tab ${activeMonth === key ? 'active' : ''}" onclick="setMonthTab('${key}')">${monthKeyLabel(key)}</button>`).join('');
+}
+
+function setMonthTab(key) { activeMonth = key; renderMonthTabs(); renderTable(); }
+
+async function selectCourse(id) {
+  cur = id;
+  initCourse(id);
+  renderSidebar();
+  document.getElementById('courseHeader').textContent = `Curso ${id}`;
+  document.getElementById('courseMeta').textContent = `${sts[id].length} estudiantes · Asistencia y uniforme por día hábil.`;
+  document.getElementById('topbarActions').style.display = '';
+  activeMonth = activeMonth === 'all' ? 'all' : (getLoadedMonthKeys(id)[0] || 'all');
+  renderMonthTabs();
+  renderTable();
+
+  if (!remoteLoaded[id]) {
+    try {
+      await syncStudentsToSheet(id);
+      await loadCourseFromSheets(id);
+      renderMonthTabs();
+      renderTable();
+    } catch (err) {
+      console.error('Error cargando datos del curso', err);
+    }
+    remoteLoaded[id] = true;
+  }
+}
+
+function visibleMonthKeys(courseId) {
+  const keys = getLoadedMonthKeys(courseId);
+  return activeMonth === 'all' ? keys : keys.filter(k => k === activeMonth);
+}
+
+function renderTable() {
+  const main = document.getElementById('mainContent');
+  if (!cur) return;
+  ensureStudentRecords(cur);
+  const monthKeys = visibleMonthKeys(cur);
+  const dates = monthKeys.flatMap(key => (courseDates[cur][key] || []));
+
+  if (!dates.length) {
+    main.innerHTML = `<div class="sheet-wrap"><div class="empty"><strong>Sin fechas cargadas</strong>No hay días disponibles para mostrar.</div></div>`;
+    return;
+  }
+
+  let html = `<div class="sheet-wrap">
+    <div class="sheet-head">
+      <div><strong>Registro diario</strong><span>Selecciona asistencia y uniforme en cada fecha.</span></div>
+      <div><strong>${dates.length} días cargados</strong><span>${visibleMonthKeys(cur).length} mes(es) visibles</span></div>
+    </div>
+    <div class="table-zone">
+      <table>
+        <thead>
+          <tr>
+            <th class="sticky-col num-col" rowspan="3">#</th>
+            <th class="sticky-col-2 name-col" rowspan="3">Estudiante</th>
+            ${monthKeys.map(key => `<th class="month-cell" colspan="${(courseDates[cur][key] || []).length * 2}">${monthKeyLabel(key)}</th>`).join('')}
+          </tr>
+          <tr>
+            ${dates.map(date => `<th class="date-cell" colspan="2"><div class="date-box"><div class="date-top"><span class="date-num">${Number(date.slice(8,10))}</span><span class="date-day">${dayLabel(date)}</span></div></div></th>`).join('')}
+          </tr>
+          <tr>
+            ${dates.map(() => `<th><div class="subheads"><span>Asistencia</span><span>Uniforme</span></div></th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${sts[cur].map(student => renderStudentRow(student, dates)).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+
+  main.innerHTML = html;
+}
+
+function renderStudentRow(student, dates) {
+  const cells = dates.map(date => {
+    const record = (records[cur][student.num] && records[cur][student.num][date]) || { a:'', u:'' };
+    const aClass = record.a ? `att-${record.a}` : '';
+    const uClass = record.u === 'bad' ? 'uni-bad' : record.u === 'permiso' ? 'uni-permiso' : '';
+    return `<td colspan="2"><div class="cell-grid">
+      <select class="${aClass}" onchange="updateRecord('${date}', ${student.num}, 'a', this.value)">
+        <option value="">Seleccionar</option>
+        <option value="asiste" ${record.a === 'asiste' ? 'selected' : ''}>Asiste</option>
+        <option value="no-asiste" ${record.a === 'no-asiste' ? 'selected' : ''}>No asiste</option>
+        <option value="tarde" ${record.a === 'tarde' ? 'selected' : ''}>Tarde</option>
+        <option value="excusa" ${record.a === 'excusa' ? 'selected' : ''}>Excusa</option>
+      </select>
+      <select class="${uClass}" onchange="updateRecord('${date}', ${student.num}, 'u', this.value)">
+        <option value="">Seleccionar</option>
+        <option value="bad" ${record.u === 'bad' ? 'selected' : ''}>Inadecuado</option>
+        <option value="permiso" ${record.u === 'permiso' ? 'selected' : ''}>Permiso coordinación</option>
+      </select>
+    </div></td>`;
+  }).join('');
+
+  return `<tr>
+    <td class="sticky-col num-col">${student.num}</td>
+    <td class="sticky-col-2 name-col"><div class="student-name"><span>${student.name}</span><small>Curso ${cur}</small></div></td>
+    ${cells}
+  </tr>`;
+}
+
+async function updateRecord(date, studentNum, field, value) {
+  if (!records[cur][studentNum]) records[cur][studentNum] = {};
+  if (!records[cur][studentNum][date]) records[cur][studentNum][date] = { a:'', u:'' };
+  records[cur][studentNum][date][field] = value;
+
+  const student = sts[cur].find(s => Number(s.num) === Number(studentNum));
+  if (!student) return;
+
+  const payload = {
+    action: 'saveRecord',
+    curso: cur,
+    studentNum: student.num,
+    studentName: student.name,
+    fecha: date
+  };
+
+  if (field === 'a') payload.asistencia = value;
+  if (field === 'u') payload.uniforme = value === 'permiso' ? 'permiso' : value;
+
+  renderTable();
+  try {
+    await apiPost(payload);
+  } catch (err) {
+    console.error('Error guardando registro', err);
+  }
+}
+
+function addMonth() {
+  if (!cur) return;
+  const key = nextMonthKey(cur);
+  ensureMonthLoaded(cur, key);
+  ensureStudentRecords(cur);
+  activeMonth = key;
+  renderMonthTabs();
+  renderTable();
+}
+
+function openModal() {
+  if (!cur) return;
+  document.getElementById('modalOverlay').classList.add('open');
+  const input = document.getElementById('newStudentName');
+  input.value = '';
+  setTimeout(() => input.focus(), 80);
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+async function confirmAdd() {
+  const input = document.getElementById('newStudentName');
+  const name = input.value.trim().toUpperCase();
+  if (!name || !cur) return;
+  const list = sts[cur];
+  list.push({ num: list.length + 1, name });
+  list.sort((a,b) => a.name.localeCompare(b.name, 'es'));
+  list.forEach((s,i) => s.num = i + 1);
+
+  const rebuilt = {};
+  list.forEach(student => {
+    rebuilt[student.num] = rebuilt[student.num] || {};
+  });
+  const oldRecords = JSON.parse(JSON.stringify(records[cur] || {}));
+  records[cur] = {};
+  list.forEach(student => {
+    records[cur][student.num] = oldRecords[student.num] || {};
+  });
+  ensureStudentRecords(cur);
+
+  document.getElementById('courseMeta').textContent = `${list.length} estudiantes · Asistencia y uniforme por día hábil.`;
+  renderTable();
+  closeModal();
+  try { await syncStudentsToSheet(cur); } catch (err) { console.error('Error sincronizando estudiantes', err); }
+}
+
+function exportCSV() {
+  if (!cur) return;
+  const dates = getAllDates(cur);
+  let csv = '﻿N°,Estudiante';
+  dates.forEach(date => { csv += `,${date} Asistencia,${date} Uniforme`; });
+  csv += '
+';
+  sts[cur].forEach(student => {
+    csv += `${student.num},"${student.name}"`;
+    dates.forEach(date => {
+      const record = (records[cur][student.num] && records[cur][student.num][date]) || { a:'', u:'' };
+      csv += `,${record.a || ''},${record.u || ''}`;
+    });
+    csv += '
+';
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `asistencia_curso_${cur}.csv`;
+  a.click();
+}
+
+document.getElementById('courseSearch').addEventListener('input', renderSidebar);
+document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+renderSidebar();
+</script>
+</body>
+</html>
